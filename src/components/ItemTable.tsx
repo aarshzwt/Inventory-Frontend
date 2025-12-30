@@ -202,6 +202,17 @@ export default function ItemTable({
                             </tr>
                         )
                     })}
+
+                    {items.length === 0 && (
+                        <tr>
+                            <td
+                                colSpan={6}
+                                className="p-4 text-center text-gray-500"
+                            >
+                                No items found
+                            </td>
+                        </tr>
+                    )}
                 </tbody>
             </table>
 

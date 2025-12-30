@@ -8,6 +8,7 @@ import { buyItem, fetchItems, FilterType, ItemType } from '../../services/item'
 
 export default function UserItems() {
     const [items, setItems] = useState<ItemType[]>([])
+    const [currentPage, setCurrentPage] = useState(1)
     const [filters, setFilters] = useState<FilterType>({
         name: "",
         category_id: "",
@@ -23,12 +24,8 @@ export default function UserItems() {
         total: 0,
     })
 
-    const loadItems = useCallback(async (
-        customFilters = filters,
-        page = pagination.page,
-        limit = pagination.itemsPerPage
-    ) => {
-        try {
+    const loadItems = useCallback(
+        async (customFilters: FilterType, page: number, limit: number) => {
             const res = await fetchItems({
                 ...customFilters,
                 page,
@@ -37,20 +34,21 @@ export default function UserItems() {
 
             setItems(res.items)
             setPagination(res.pagination)
-        } catch {
+        },
+        []
+    )
 
-        }
-    }, [filters, pagination.page, pagination.itemsPerPage])
 
     useEffect(() => {
-        loadItems(filters, 1, pagination.itemsPerPage)
-    }, [filters, loadItems, pagination.itemsPerPage])
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        loadItems(filters, currentPage, pagination.itemsPerPage)
+    }, [filters, currentPage, pagination.itemsPerPage, loadItems])
 
     const onBuy = async (itemId: number, quantity: number) => {
         await buyItem(itemId, quantity)
 
         // refresh items after buy
-        loadItems()
+        loadItems(filters, currentPage, pagination.itemsPerPage)
     }
 
 
@@ -62,18 +60,15 @@ export default function UserItems() {
 
             <ItemTable items={items} isAdmin={false} onBuy={onBuy} />
 
-            {pagination.total > pagination.itemsPerPage && (
-                <Pagination
-                    contentType="Item"
-                    paginationData={pagination}
-                    onPageChange={(page) =>
-                        loadItems(filters, page, pagination.itemsPerPage)
-                    }
-                    onPageSizeChange={(size) =>
-                        loadItems(filters, 1, size)
-                    }
-                />
-            )}
+            <Pagination
+                contentType="Item"
+                paginationData={pagination}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(size) => {
+                    setPagination((prev) => ({ ...prev, itemsPerPage: size }))
+                    setCurrentPage(1)
+                }}
+            />
         </div>
     )
 }

@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
 
     // protect admin routes
     if (pathname.startsWith("/admin") && role !== "admin") {
-        return NextResponse.redirect(new URL("/user/items", request.url));
+        return NextResponse.redirect(new URL("/", request.url));
     }
 
     return NextResponse.next();

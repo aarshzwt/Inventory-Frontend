@@ -33,7 +33,7 @@ export function Pagination({
 
   //Dynamic Page Size option based on total
   const pageSizeOptions = useMemo(() => {
-    const step = 5
+    const step = 1
     const options = []
     for (let i = step; i <= total + step; i += step) {
       options.push(i)

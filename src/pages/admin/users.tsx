@@ -106,7 +106,7 @@ export default function AdminUsersPage() {
                         {users.length === 0 && (
                             <tr>
                                 <td
-                                    colSpan={5}
+                                    colSpan={6}
                                     className="p-4 text-center text-gray-500"
                                 >
                                     No users found
@@ -116,6 +116,19 @@ export default function AdminUsersPage() {
                     </tbody>
                 </table>
             </div>
+
+            {/* Pagination */}
+            <Pagination
+                paginationData={pagination}
+                contentType="User"
+                onPageChange={(page) =>
+                    loadUsers(page, pagination.itemsPerPage)
+                }
+                onPageSizeChange={(size) =>
+                    loadUsers(1, size)
+                }
+            />
+
             {editingUser && (
                 <div className="flex flex-wrap justify-center">
                     <UserForm
@@ -134,18 +147,6 @@ export default function AdminUsersPage() {
                     />
                 </div>
             )}
-
-            {/* Pagination */}
-            <Pagination
-                paginationData={pagination}
-                contentType="User"
-                onPageChange={(page) =>
-                    loadUsers(page, pagination.itemsPerPage)
-                }
-                onPageSizeChange={(size) =>
-                    loadUsers(1, size)
-                }
-            />
         </div>
     )
 }

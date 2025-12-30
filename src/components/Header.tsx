@@ -43,11 +43,17 @@ export default function Header() {
           {/* ADMIN */}
           {user?.role === "admin" && (
             <>
+              <button onClick={() => router.push("/admin/users")}>
+                Admin Users
+              </button>
               <button onClick={() => router.push("/admin/items")}>
                 Admin Items
               </button>
-              <button onClick={() => router.push("/admin/users")}>
-                Admin Users
+              <button onClick={() => router.push("/admin/categories")}>
+                Admin Categories
+              </button>
+              <button onClick={() => router.push("/admin/subcategories")}>
+                Admin SubCategories
               </button>
             </>
           )}

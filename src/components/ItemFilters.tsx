@@ -47,6 +47,14 @@ export default function ItemFilters({ onChange }: { onChange: (filters: FilterTy
         loadSubCategories();
 
     }, [filters.category_id]);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            onChange(filters);
+        }, 400); // ⏱ debounce delay
+
+        return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filters.name]);
 
     const updateFilters = (key: string, value: string) => {
         const updated = { ...filters, [key]: value };
@@ -56,7 +64,9 @@ export default function ItemFilters({ onChange }: { onChange: (filters: FilterTy
         }
 
         setFilters(updated);
-        onChange(updated);
+        if (key !== "name") {
+            onChange(updated);
+        }
     };
 
     return (
