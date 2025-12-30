@@ -26,14 +26,18 @@ export default function UserItems() {
 
     const loadItems = useCallback(
         async (customFilters: FilterType, page: number, limit: number) => {
-            const res = await fetchItems({
-                ...customFilters,
-                page,
-                limit,
-            })
+            try {
+                const res = await fetchItems({
+                    ...customFilters,
+                    page,
+                    limit,
+                })
 
-            setItems(res.items)
-            setPagination(res.pagination)
+                setItems(res.items)
+                setPagination(res.pagination)
+            } catch {
+
+            }
         },
         []
     )
@@ -42,6 +46,7 @@ export default function UserItems() {
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         loadItems(filters, currentPage, pagination.itemsPerPage)
+
     }, [filters, currentPage, pagination.itemsPerPage, loadItems])
 
     const onBuy = async (itemId: number, quantity: number) => {
@@ -59,16 +64,17 @@ export default function UserItems() {
             <ItemFilters onChange={setFilters} />
 
             <ItemTable items={items} isAdmin={false} onBuy={onBuy} />
-
-            <Pagination
-                contentType="Item"
-                paginationData={pagination}
-                onPageChange={setCurrentPage}
-                onPageSizeChange={(size) => {
-                    setPagination((prev) => ({ ...prev, itemsPerPage: size }))
-                    setCurrentPage(1)
-                }}
-            />
+            {items.length !== 0 && (
+                <Pagination
+                    contentType="Item"
+                    paginationData={pagination}
+                    onPageChange={setCurrentPage}
+                    onPageSizeChange={(size) => {
+                        setPagination((prev) => ({ ...prev, itemsPerPage: size }))
+                        setCurrentPage(1)
+                    }}
+                />
+            )}
         </div>
     )
 }

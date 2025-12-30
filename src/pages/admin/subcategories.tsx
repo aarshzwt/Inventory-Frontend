@@ -14,8 +14,12 @@ export default function AdminCategoriesPage() {
   const [showCreate, setShowCreate] = useState(false)
 
   const loadSubCategories = async () => {
-    const res = await fetchSubCategories()
-    setSubCategories(res.subCategories || [])
+    try {
+      const res = await fetchSubCategories()
+      setSubCategories(res.subCategories || [])
+    } catch {
+
+    }
   }
 
   useEffect(() => {
@@ -76,6 +80,17 @@ export default function AdminCategoriesPage() {
               </td>
             </tr>
           ))}
+
+          {subCategories.length === 0 && (
+            <tr>
+              <td
+                colSpan={3}
+                className="p-4 text-center text-gray-500"
+              >
+                No sub-categories found
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
 

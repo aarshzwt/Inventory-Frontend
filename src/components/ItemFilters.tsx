@@ -53,7 +53,7 @@ export default function ItemFilters({ onChange }: { onChange: (filters: FilterTy
         }, 400); // ⏱ debounce delay
 
         return () => clearTimeout(handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filters.name]);
 
     const updateFilters = (key: string, value: string) => {

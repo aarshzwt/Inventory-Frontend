@@ -82,6 +82,7 @@ axiosInstance.interceptors.response.use(
 
     // OTHER ERRORS
     if (status === 401) {
+      showAllErrors(error)
       Router.push('/login')
     }
      if (status === 403) {

@@ -14,8 +14,12 @@ export default function AdminCategoriesPage() {
   const [showCreate, setShowCreate] = useState(false)
 
   const loadCategories = async () => {
-    const res = await fetchCategories()
-    setCategories(res.categories || [])
+    try {
+      const res = await fetchCategories()
+      setCategories(res.categories || [])
+    } catch {
+
+    }
   }
 
   useEffect(() => {
@@ -76,6 +80,16 @@ export default function AdminCategoriesPage() {
               </td>
             </tr>
           ))}
+          {categories.length === 0 && (
+            <tr>
+              <td
+                colSpan={3}
+                className="p-4 text-center text-gray-500"
+              >
+                No categories found
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
 

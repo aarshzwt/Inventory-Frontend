@@ -118,16 +118,18 @@ export default function AdminUsersPage() {
             </div>
 
             {/* Pagination */}
-            <Pagination
-                paginationData={pagination}
-                contentType="User"
-                onPageChange={(page) =>
-                    loadUsers(page, pagination.itemsPerPage)
-                }
-                onPageSizeChange={(size) =>
-                    loadUsers(1, size)
-                }
-            />
+            {users.length !== 0 && (
+                <Pagination
+                    paginationData={pagination}
+                    contentType="User"
+                    onPageChange={(page) =>
+                        loadUsers(page, pagination.itemsPerPage)
+                    }
+                    onPageSizeChange={(size) =>
+                        loadUsers(1, size)
+                    }
+                />
+            )}
 
             {editingUser && (
                 <div className="flex flex-wrap justify-center">

@@ -26,14 +26,19 @@ export default function AdminItems() {
 
     const loadItems = useCallback(
         async (customFilters: FilterType, page: number, limit: number) => {
-            const res = await fetchItems({
-                ...customFilters,
-                page,
-                limit,
-            })
+            try {
 
-            setItems(res.items)
-            setPagination(res.pagination)
+                const res = await fetchItems({
+                    ...customFilters,
+                    page,
+                    limit,
+                })
+
+                setItems(res.items)
+                setPagination(res.pagination)
+            } catch {
+
+            }
         },
         []
     )

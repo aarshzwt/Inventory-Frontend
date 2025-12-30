@@ -17,7 +17,7 @@ const schema = Yup.object({
   name: Yup.string().required("Name is required"),
   category_id: Yup.number().required("Category is required"),
   sub_category_id: Yup.number().required("Sub category is required"),
-  brand: Yup.string().optional(),
+  brand: Yup.string().required("Brand is required"),
   stock: Yup.number().min(0).max(100),
 })
 
@@ -94,6 +94,7 @@ export default function ItemForm({
               placeholder="Brand"
               className="w-full border px-3 py-2 rounded"
             />
+            {errors.brand && <p className="text-red-500 text-sm">{errors.brand}</p>}
 
             {/* Category */}
             <Field
