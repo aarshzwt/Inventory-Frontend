@@ -20,7 +20,7 @@ export default function UserItems() {
     const [pagination, setPagination] = useState({
         page: 1,
         totalPages: 1,
-        itemsPerPage: 1,
+        itemsPerPage: 10,
         total: 0,
     })
 
@@ -50,10 +50,11 @@ export default function UserItems() {
     }, [filters, currentPage, pagination.itemsPerPage, loadItems])
 
     const onBuy = async (itemId: number, quantity: number) => {
-        await buyItem(itemId, quantity)
-
-        // refresh items after buy
-        loadItems(filters, currentPage, pagination.itemsPerPage)
+        try {
+            await buyItem(itemId, quantity)
+            // refresh items after buy
+            loadItems(filters, currentPage, pagination.itemsPerPage)
+        } catch { }
     }
 
 

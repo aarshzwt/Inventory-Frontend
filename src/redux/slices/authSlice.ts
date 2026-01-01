@@ -47,6 +47,7 @@ export const authSlice = createSlice({
             localStorage.removeItem("user");
             localStorage.removeItem("token");
             document.cookie = "role=; path=/; max-age=0;";
+            document.cookie = "refreshToken=; path=/; max-age=0;"
         },
         hydrateAuth: (state) => {
             state.isHydrated = true;

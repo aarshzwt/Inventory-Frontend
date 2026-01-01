@@ -20,7 +20,7 @@ export default function AdminItems() {
     const [pagination, setPagination] = useState({
         page: 1,
         totalPages: 1,
-        itemsPerPage: 1,
+        itemsPerPage: 10,
         total: 0,
     })
 
@@ -71,7 +71,21 @@ export default function AdminItems() {
                     role="admin"
                     onClose={() => setShowCreateForm(false)}
                     onSubmit={async (values) => {
-                        await createItem(values)
+                        const formData = new FormData()
+
+                        formData.append("name", values.name)
+                        formData.append("brand", values.brand)
+                        formData.append("category_id", String(values.category_id))
+                        formData.append("sub_category_id", String(values.sub_category_id))
+                        formData.append("stock", String(values.stock))
+                        formData.append("description", values.description)
+                        formData.append("price", String(values.price))
+
+                        // Append image ONLY if it's a File
+                        if (values.image instanceof File) {
+                            formData.append("image", values.image)
+                        }
+                        await createItem(formData)
                         setShowCreateForm(false)
                         loadItems(filters, currentPage, pagination.itemsPerPage)
                     }}

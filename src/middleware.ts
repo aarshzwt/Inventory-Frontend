@@ -9,6 +9,9 @@ export function middleware(request: NextRequest) {
     if (pathname.startsWith("/admin") && role !== "admin") {
         return NextResponse.redirect(new URL("/", request.url));
     }
+    if (pathname.startsWith("/cart") && role !== "user") {
+        return NextResponse.redirect(new URL("/", request.url));
+    }
 
     return NextResponse.next();
 }

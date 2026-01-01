@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { Category, fetchCategories, fetchSubCategories } from "../services/category"
 import { ItemFormType } from "../services/item"
 import { Formik, Form, Field } from "formik"
@@ -13,20 +15,36 @@ type Props = {
   onClose: () => void
 }
 
-const schema = Yup.object({
-  name: Yup.string().required("Name is required"),
-  category_id: Yup.number().required("Category is required"),
-  sub_category_id: Yup.number().required("Sub category is required"),
-  brand: Yup.string().required("Brand is required"),
-  stock: Yup.number().min(0).max(100),
-})
+const getSchema = (mode: "create" | "update") =>
+  Yup.object({
+    name: Yup.string().required("Name is required"),
+    category_id: Yup.number().required("Category is required"),
+    sub_category_id: Yup.number().required("Sub category is required"),
+    brand: Yup.string().required("Brand is required"),
+    stock: Yup.number().min(0).max(100),
+    price: Yup.number().min(1),
+    description: Yup.string().required("Description is required"),
+    image:
+      mode === "create"
+        ? Yup.mixed()
+          .required("Image is required")
+          .test("fileSize", "Image must be less than 2MB", (value: any) =>
+            value ? value.size <= 2 * 1024 * 1024 : true
+          )
+          .test("fileType", "Only JPG/PNG allowed", (value: any) =>
+            value
+              ? ["image/jpeg", "image/jpg", "image/png"].includes(value.type)
+              : true
+          )
+        : Yup.mixed().notRequired(),
+  })
 
 export default function ItemForm({
   mode,
   role,
   initialValues,
   onSubmit,
-  onClose
+  onClose,
 }: Props) {
   const isAdmin = role === "admin"
 
@@ -36,19 +54,22 @@ export default function ItemForm({
     category_id: null,
     sub_category_id: null,
     stock: 0,
+    image: null,
+    price: 0,
+    description: "",
   }
 
   const [categories, setCategories] = useState<Category[]>([])
   const [subCategories, setSubCategories] = useState<Category[]>([])
+  const [preview, setPreview] = useState<string | null>(null)
 
-  /* Load categories once */
   useEffect(() => {
     fetchCategories()
       .then((res) => res.categories && setCategories(res.categories))
       .catch(() => { })
   }, [])
 
-  /* Load subcategories when editing existing item */
+
   useEffect(() => {
     if (initialValues?.category_id) {
       fetchSubCategories(initialValues.category_id)
@@ -56,6 +77,38 @@ export default function ItemForm({
         .catch(() => { })
     }
   }, [initialValues?.category_id])
+
+
+  useEffect(() => {
+    if (mode === "update" && initialValues?.image) {
+      if (typeof initialValues.image === "string") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setPreview(initialValues.image)
+      } else if (initialValues.image instanceof File) {
+        setPreview(URL.createObjectURL(initialValues.image))
+      }
+    }
+  }, [mode, initialValues])
+
+
+  useEffect(() => {
+    return () => {
+      if (preview && preview.startsWith("blob:")) {
+        URL.revokeObjectURL(preview)
+      }
+    }
+  }, [preview])
+
+  const handleFiles = (
+    files: FileList | null,
+    setFieldValue: any
+  ) => {
+    if (files && files[0]) {
+      const file = files[0]
+      setFieldValue("image", file)
+      setPreview(URL.createObjectURL(file))
+    }
+  }
 
   return (
     <div className="bg-white shadow rounded p-4 mb-6">
@@ -73,7 +126,7 @@ export default function ItemForm({
 
       <Formik
         initialValues={initialValues || defaultValues}
-        validationSchema={schema}
+        validationSchema={getSchema(mode)}
         enableReinitialize
         onSubmit={onSubmit}
       >
@@ -88,6 +141,13 @@ export default function ItemForm({
             />
             {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
 
+            <Field
+              name="description"
+              placeholder="Item Description"
+              className="w-full border px-3 py-2 rounded"
+            />
+            {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+
             {/* Brand */}
             <Field
               name="brand"
@@ -96,6 +156,21 @@ export default function ItemForm({
             />
             {errors.brand && <p className="text-red-500 text-sm">{errors.brand}</p>}
 
+            <Field
+              name="price"
+              type="number"
+              min={0}
+              className="w-20 text-center border px-2 py-1 rounded"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const value = Number(e.target.value)
+                if (value >= 0) {
+                  setFieldValue("price", value)
+                }
+              }}
+            />
+            {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
+
+
             {/* Category */}
             <Field
               as="select"
@@ -103,7 +178,6 @@ export default function ItemForm({
               className="w-full border px-3 py-2 rounded"
               onChange={async (e: React.ChangeEvent<HTMLSelectElement>) => {
                 const categoryId = Number(e.target.value) || null
-
                 setFieldValue("category_id", categoryId)
                 setFieldValue("sub_category_id", null)
 
@@ -125,9 +199,6 @@ export default function ItemForm({
                 </option>
               ))}
             </Field>
-            {errors.category_id && (
-              <p className="text-red-500 text-sm">{errors.category_id}</p>
-            )}
 
             {/* Sub Category */}
             <Field
@@ -143,24 +214,75 @@ export default function ItemForm({
                 </option>
               ))}
             </Field>
-            {errors.sub_category_id && (
-              <p className="text-red-500 text-sm">{errors.sub_category_id}</p>
-            )}
 
-            {/* Stock (ADMIN ONLY) */}
-            {isAdmin && (
-              <>
-                <Field
-                  name="stock"
-                  type="number"
-                  min={0}
-                  max={100}
-                  className="w-full border px-3 py-2 rounded"
+            {/* Image */}
+            <div>
+              <input
+                type="file"
+                accept="image/png, image/jpeg, image/jpg"
+                onChange={(e) => handleFiles(e.target.files, setFieldValue)}
+              />
+              {errors.image && (
+                <p className="text-red-500 text-sm mt-1">{errors.image as string}</p>
+              )}
+
+              {preview && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="mt-3 w-20 h-20 object-cover rounded border"
                 />
+              )}
+            </div>
+
+            {/* Stock (Admin Only) */}
+            {isAdmin && (
+              <div>
+                <label className="block text-sm font-medium mb-1">Stock</label>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFieldValue("stock", Math.max((values.stock || 0) - 1, 0))
+                    }
+                    disabled={values.stock <= 0}
+                    className="w-9 h-9 border rounded flex items-center justify-center disabled:opacity-40"
+                  >
+                    −
+                  </button>
+
+                  <Field
+                    name="stock"
+                    type="number"
+                    min={0}
+                    max={100}
+                    className="w-20 text-center border px-2 py-1 rounded"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const value = Number(e.target.value)
+                      if (value >= 0 && value <= 100) {
+                        setFieldValue("stock", value)
+                      }
+                    }}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFieldValue("stock", Math.min((values.stock || 0) + 1, 100))
+                    }
+                    disabled={values.stock >= 100}
+                    className="w-9 h-9 border rounded flex items-center justify-center disabled:opacity-40"
+                  >
+                    +
+                  </button>
+                </div>
+
                 {errors.stock && (
-                  <p className="text-red-500 text-sm">{errors.stock}</p>
+                  <p className="text-red-500 text-sm mt-1">{errors.stock}</p>
                 )}
-              </>
+              </div>
             )}
 
             <button

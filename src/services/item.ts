@@ -10,6 +10,9 @@ export type ItemType = {
     subCategoryName: string;
     categoryName: string;
     stock: number;
+    image: string | null;
+    price: string;
+    description: string;
 };
 
 export interface FilterType {
@@ -31,19 +34,35 @@ export type ItemFormType = {
     category_id: number | null;
     sub_category_id: number | null;
     stock: number;
+    image?: File | string | null
+    price: number;
+    description: string;
 }
 
-type ItemResponseType = {
+type ItemsResponseType = {
     items: ItemType[];
     pagination: paginationDataType;
 };
+type ItemResponseType = {
+    item: ItemType;
+};
 
-export const fetchItems = (params: ItemParamsType) => GET<ItemResponseType>("/item", { params });
+export const fetchItems = (params: ItemParamsType) => GET<ItemsResponseType>("/item", { params });
 
-export const createItem = (data: unknown) => POST("/item", data);
+export const fetchItemById = (id: number) => GET<ItemResponseType>(`/item/${id}`);
+
+export const createItem = (data: unknown) => POST("/item", data, {
+    headers: {
+        "Content-Type": "multipart/form-data",
+    },
+});
 
 export const updateItem = (id: number, data: unknown) =>
-    PATCH(`/item/${id}`, data);
+    PATCH(`/item/${id}`, data, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
 
 export const deleteItem = (id: number) =>
     DELETE(`/item/${id}`);

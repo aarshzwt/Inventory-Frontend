@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useAppSelector } from "@/redux/hooks"
-import { UserType, PaginationType, fetchUsers, deleteUser, updateUser } from "@/services/user"
+import { UserType, PaginationType, fetchUsers, deleteUser, updateUser, registerUser } from "@/services/user"
 import { Pagination } from "@/components/Pagination"
 import UserForm from "@/components/UserForm"
 
@@ -16,6 +16,7 @@ export default function AdminUsersPage() {
     })
     const [loading, setLoading] = useState(true)
     const [editingUser, setEditingUser] = useState<UserType | null>(null);
+    const [showCreateForm, setShowCreateForm] = useState(false)
 
     const loadUsers = useCallback(async (
         page = pagination.page,
@@ -49,8 +50,29 @@ export default function AdminUsersPage() {
 
     return (
         <div className="p-6">
-            <h1 className="text-2xl font-semibold mb-4">All Users</h1>
+            <div className="flex justify-between items-center mb-2">
+                <h1 className="text-xl font-semibold">Users</h1>
 
+                <button
+                    onClick={() => setShowCreateForm((prev) => !prev)}
+                    className="px-4 py-2 rounded hover:bg-primary-700"
+                >
+                    {showCreateForm ? "Close" : "+ Create user"}
+                </button>
+            </div>
+            {/* Create Item Form */}
+            {showCreateForm && (
+                <UserForm
+                    mode="create"
+                    role="admin"
+                    onSubmit={async (values) => {
+                        await registerUser(values)
+                        setShowCreateForm(false)
+                        loadUsers();
+                    }}
+                    onClose={() => setEditingUser(null)}
+                />
+            )}
             <div className="overflow-x-auto border rounded">
                 <table className="w-full border-collapse">
                     <thead className="bg-gray-100">
@@ -94,7 +116,8 @@ export default function AdminUsersPage() {
 
                                         <button
                                             onClick={() => handleDeleteUser(u.id)}
-                                            className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                                            disabled={u.id === user!.id}
+                                            className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 disabled:opacity-40"
                                         >
                                             Delete
                                         </button>
