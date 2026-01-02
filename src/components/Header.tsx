@@ -35,9 +35,17 @@ export default function Header() {
         <>
           {/* USER */}
           {user?.role === "user" && (
-            <button onClick={() => router.push("/user/items")}>
-              My Items
-            </button>
+            <>
+              <button onClick={() => router.push("/user/items")}>
+                Items
+              </button>
+              <button onClick={() => router.push("/cart")}>
+                My Cart
+              </button>
+              <button onClick={() => router.push("/orders")}>
+                My Orders
+              </button>
+            </>
           )}
 
           {/* ADMIN */}

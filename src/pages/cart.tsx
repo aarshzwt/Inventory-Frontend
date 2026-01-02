@@ -15,12 +15,16 @@ export default function CartPage() {
     const [items, setItems] = useState<CartItemType[]>([])
     const [loading, setLoading] = useState(true)
     const [checkingOut, setCheckingOut] = useState(false)
+    const [orderSummary, setOrderSummary] = useState<CartItemType[] | null>(null)
+    const [orderTotal, setOrderTotal] = useState<number>(0)
 
     const loadCart = async () => {
         try {
             setLoading(true)
             const res = await getCart()
             setItems(res.cart?.items || [])
+        } catch {
+
         } finally {
             setLoading(false)
         }
@@ -55,12 +59,14 @@ export default function CartPage() {
         try {
             setCheckingOut(true)
             await checkoutCart()
+            setOrderSummary(items)
+            setOrderTotal(totalPrice)
             showSuccessToast("Order placed successfully")
-            router.push("/")
         } finally {
             setCheckingOut(false)
         }
     }
+
 
     if (loading) {
         return <p className="p-6">Loading cart...</p>
@@ -79,6 +85,70 @@ export default function CartPage() {
             </div>
         )
     }
+    if (orderSummary) {
+        return (
+            <div className="max-w-4xl mx-auto p-6 space-y-6">
+                <h1 className="text-2xl font-semibold text-green-700">
+                    Order Confirmed 🎉
+                </h1>
+
+                <div className="border rounded-lg overflow-hidden bg-white">
+                    <table className="w-full text-sm">
+                        <thead className="bg-gray-100">
+                            <tr>
+                                <th className="text-left p-3">Item</th>
+                                <th className="text-center p-3">Qty</th>
+                                <th className="text-right p-3">Price</th>
+                                <th className="text-right p-3">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {orderSummary.map((item) => (
+                                <tr key={item.id} className="border-t">
+                                    <td className="p-3">
+                                        <div className="font-medium">
+                                            {item.item_name}
+                                        </div>
+                                        <div className="text-xs text-gray-500">
+                                            {item.category_name} →{" "}
+                                            {item.sub_category_name}
+                                        </div>
+                                    </td>
+                                    <td className="text-center p-3">
+                                        {item.quantity}
+                                    </td>
+                                    <td className="text-right p-3">
+                                        ${item.price}
+                                    </td>
+                                    <td className="text-right p-3 font-semibold">
+                                        ${Number(item.price) * item.quantity}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div className="flex justify-end">
+                    <div className="text-lg font-semibold">
+                        Total:{" "}
+                        <span className="text-green-700">
+                            ${orderTotal}
+                        </span>
+                    </div>
+                </div>
+
+                <div className="flex justify-end">
+                    <button
+                        onClick={() => router.push("/")}
+                        className="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700"
+                    >
+                        Continue Shopping
+                    </button>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="max-w-5xl mx-auto p-6 space-y-6">
@@ -89,7 +159,7 @@ export default function CartPage() {
                 {items.map((item) => (
                     <div
                         key={item.id}
-                        className="flex gap-4 border rounded p-4 bg-white"
+                        className="flex flex-col md:flex-row gap-4 border rounded-lg p-4 bg-white shadow-sm"
                     >
                         {/* Image */}
                         {item.item_image && (
@@ -103,16 +173,17 @@ export default function CartPage() {
 
                         {/* Details */}
                         <div className="flex-1 space-y-1">
-                            <h3 className="font-semibold">{item.item_name}</h3>
+                            <h3 className="font-semibold text-lg">{item.item_name}</h3>
                             <p className="text-sm text-gray-600">
                                 {item.category_name} → {item.sub_category_name}
                             </p>
                             <p className="text-sm text-gray-600">
                                 Brand: {item.item_brand}
                             </p>
-                            <p className="text-sm">
-                                Price: <strong>${item.price}</strong>
+                            <p className="text-sm text-gray-700">
+                                Price: <span className="font-semibold">${item.price}</span>
                             </p>
+
                         </div>
 
                         {/* Quantity */}
@@ -168,7 +239,7 @@ export default function CartPage() {
 
 
                         {/* Subtotal */}
-                        <div className="flex items-center font-semibold">
+                        <div className="flex items-center font-semibold text-lg text-green-700">
                             ${Number(item.price) * item.quantity}
                         </div>
                     </div>
@@ -176,8 +247,8 @@ export default function CartPage() {
             </div>
 
             {/* Summary */}
-            <div className="flex justify-end">
-                <div className="w-full max-w-sm border rounded p-4 bg-gray-50 space-y-3">
+            <div className="flex justify-end sticky bottom-0 md:static bg-white">
+                <div className="w-full max-w-sm border rounded-lg p-5 bg-gray-50 space-y-4 shadow-sm">
                     <div className="flex justify-between">
                         <span>Total</span>
                         <strong>${totalPrice}</strong>

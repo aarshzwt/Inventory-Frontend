@@ -42,7 +42,6 @@ export default function LoginPage() {
 
                         router.push("/");
                     } catch {
-                        // optionally show toast or form error here
                     } finally {
                         setSubmitting(false);
                     }

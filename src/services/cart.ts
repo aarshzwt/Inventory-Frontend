@@ -18,6 +18,7 @@ export type Cart = {
     id: number;
     status: string;
     items: CartItemType[]
+    createdAt: string
 }
 
 export type CartResponseType = {
@@ -32,6 +33,9 @@ export const addToCart = (itemId: number, quantity: number) =>
 
 export const getCart = () =>
     GET<CartResponseType>("/cart")
+
+export const getOrderHistory = () =>
+    GET<{ orders: Cart[] }>("/cart/orders")
 
 export const updateCartItem = (cartItemId: number, quantity: number) =>
     PATCH(`/cart/${cartItemId}`, { quantity })

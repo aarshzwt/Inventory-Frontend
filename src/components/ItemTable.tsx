@@ -76,6 +76,12 @@ export default function ItemTable({
                                             {/* Admin Actions */}
                                             <div className="flex flex-wrap justify-center gap-2">
                                                 <button
+                                                    onClick={() => router.push(`../item/${item.id}`)}
+                                                    className="ml-2 bg-blue-600 text-white px-3 py-1 rounded disabled:opacity-40"
+                                                >
+                                                    Details
+                                                </button>
+                                                <button
                                                     onClick={() => setEditingItem(item)}
                                                     className="bg-indigo-600 text-white px-3 py-1 rounded text-sm hover:bg-indigo-700"
                                                 >
