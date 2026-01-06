@@ -68,126 +68,150 @@ export default function ItemDetailPage() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto p-6 bg-white shadow rounded">
+        <div className="max-w-5xl mx-auto p-6">
+            <div className="bg-white shadow-lg rounded-xl overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Image */}
-                {item.image && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                        src={item.image}
-                        alt={item.name}
-                        className="rounded object-cover w-full max-h-80"
-                    />
-                )}
+                    {/* IMAGE SECTION */}
+                    {item.image && (
+                        <div className="flex items-center justify-center bg-gray-50 rounded-lg p-4">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src={item.image}
+                                alt={item.name}
+                                className="rounded-lg object-contain max-h-80 w-full"
+                            />
+                        </div>
+                    )}
 
-                {/* Details */}
-                <div className="space-y-3">
-                    <h1 className="text-2xl font-semibold">{item.name}</h1>
+                    {/* DETAILS SECTION */}
+                    <div className="flex flex-col space-y-4">
 
-                    <p><strong>Description:</strong> {item.description}</p>
-                    <p><strong>Brand:</strong> {item.brand}</p>
-                    <p><strong>Category:</strong> {item.categoryName}</p>
-                    <p><strong>Sub Category:</strong> {item.subCategoryName}</p>
-                    <p><strong>Price:</strong> ${item.price}</p>
-                    {user?.role === "admin" && (
-                        <p>
-                            <strong>Stock:</strong>{" "}
-                            <span
-                                className={
-                                    item.stock === 0
-                                        ? "text-red-600"
-                                        : "text-green-600"
-                                }
-                            >
-                                {item.stock}
+                        {/* Title */}
+                        <h1 className="text-3xl font-semibold text-gray-900">
+                            {item.name}
+                        </h1>
+
+                        {/* Brand & Category */}
+                        <div className="flex flex-wrap gap-2 text-sm">
+                            <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full">
+                                {item.brand}
                             </span>
+                            <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full">
+                                {item.categoryName}
+                            </span>
+                            <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full">
+                                {item.subCategoryName}
+                            </span>
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-gray-600 leading-relaxed">
+                            {item.description}
                         </p>
-                    )}
 
-                    {/* BUY SECTION – USER ONLY */}
-                    {item && (
-                        <>
-                            {/* ADD TO CART – USER ONLY */}
-                            <div className="border-t pt-4 space-y-3">
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Quantity
-                                </label>
+                        {/* Price */}
+                        <div className="text-2xl font-bold text-gray-900">
+                            ${item.price}
+                        </div>
 
-                                <div className="flex items-center gap-3">
-                                    {/* Decrease */}
-                                    <button
-                                        onClick={decrease}
-                                        disabled={qty <= 0}
-                                        className="w-8 h-8 border rounded flex items-center justify-center
-                                        disabled:opacity-40 hover:bg-gray-100"
-                                    >
-                                        −
-                                    </button>
-
-                                    {/* Manual Input */}
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        max={item.stock}
-                                        value={qty}
-                                        onChange={(e) => {
-                                            const value = Number(e.target.value)
-                                            if (value >= 0 && value <= item.stock) {
-                                                setQty(value)
-                                            }
-                                        }}
-                                        className="w-16 text-center border rounded py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                    />
-
-                                    {/* Increase */}
-                                    <button
-                                        onClick={increase}
-                                        disabled={qty >= item.stock}
-                                        className="w-8 h-8 border rounded flex items-center justify-center
-                                        disabled:opacity-40 hover:bg-gray-100"
-                                    >
-                                        +
-                                    </button>
-
-                                    {/* Add to cart */}
-                                    <button
-                                        onClick={handleAddToCart}
-                                        disabled={
-                                            buying ||
-                                            qty === 0 ||
-                                            item.stock === 0 ||
-                                            qty > item.stock
-                                        }
-                                        className="ml-2 bg-blue-600 text-white px-4 py-1.5 rounded
-                                        hover:bg-blue-700 disabled:opacity-40 disabled:hover:bg-blue-600"
-                                    >
-                                        {buying ? "Adding..." : "Add to Cart"}
-                                    </button>
-                                </div>
-
-                                {/* Price preview */}
-                                {qty > 0 && (
-                                    <p className="text-sm text-gray-600">
-                                        Subtotal:{" "}
-                                        <strong className="text-gray-900">
-                                            ${Number(item.price) * qty}
-                                        </strong>
-                                    </p>
-                                )}
-
-                                {item.stock === 0 && (
-                                    <p className="text-red-500 text-sm">Sold Out!</p>
-                                )}
-
-                                {/* {qty === item.stock && (
-                                    <p className="text-red-500 text-sm">
-                                        No more stock available
-                                    </p>
-                                )} */}
+                        {/* Stock (Admin Only) */}
+                        {user?.role === "admin" && (
+                            <div>
+                                <span className="text-sm font-medium mr-2">
+                                    Stock:
+                                </span>
+                                <span
+                                    className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${item.stock === 0
+                                            ? "bg-red-100 text-red-700"
+                                            : "bg-green-100 text-green-700"
+                                        }`}
+                                >
+                                    {item.stock === 0 ? "Out of stock" : item.stock}
+                                </span>
                             </div>
-                        </>
-                    )}
+                        )}
+
+                        {/* BUY SECTION */}
+                        <div className="border-t pt-5 space-y-4">
+
+                            <label className="block text-sm font-medium text-gray-700">
+                                Quantity
+                            </label>
+
+                            <div className="flex items-center gap-3">
+
+                                {/* Decrease */}
+                                <button
+                                    onClick={decrease}
+                                    disabled={qty <= 0}
+                                    className="w-9 h-9 border rounded-lg flex items-center justify-center
+                                disabled:opacity-40 hover:bg-gray-100 transition"
+                                >
+                                    −
+                                </button>
+
+                                {/* Input */}
+                                <input
+                                    type="number"
+                                    min={0}
+                                    max={item.stock}
+                                    value={qty}
+                                    onChange={(e) => {
+                                        const value = Number(e.target.value)
+                                        if (value >= 0 && value <= item.stock) {
+                                            setQty(value)
+                                        }
+                                    }}
+                                    className="w-20 text-center border rounded-lg py-1.5
+                                focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+
+                                {/* Increase */}
+                                <button
+                                    onClick={increase}
+                                    disabled={qty >= item.stock}
+                                    className="w-9 h-9 border rounded-lg flex items-center justify-center
+                                disabled:opacity-40 hover:bg-gray-100 transition"
+                                >
+                                    +
+                                </button>
+
+                                {/* Add to Cart */}
+                                <button
+                                    onClick={handleAddToCart}
+                                    disabled={
+                                        buying ||
+                                        qty === 0 ||
+                                        item.stock === 0 ||
+                                        qty > item.stock
+                                    }
+                                    className="ml-3 bg-blue-600 text-white px-6 py-2 rounded-lg
+                                font-medium hover:bg-blue-700 transition
+                                disabled:opacity-40 disabled:hover:bg-blue-600"
+                                >
+                                    {buying ? "Adding..." : "Add to Cart"}
+                                </button>
+                            </div>
+
+                            {/* Subtotal */}
+                            {qty > 0 && (
+                                <p className="text-sm text-gray-600">
+                                    Subtotal:{" "}
+                                    <strong className="text-gray-900">
+                                        ${Number(item.price) * qty}
+                                    </strong>
+                                </p>
+                            )}
+
+                            {/* Sold Out */}
+                            {item.stock === 0 && (
+                                <p className="text-sm text-red-500 font-medium">
+                                    Sold Out
+                                </p>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
-const isDocker = process.env.DOCKER === 'true';
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 const nextConfig: NextConfig = {
   reactStrictMode: false,
@@ -8,9 +9,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/uploads/image/:path*',
-        destination: isDocker
-          ? 'https://grayce-unvitriolized-rachael.ngrok-free.dev/uploads/image/:path*'
-          : 'http://localhost:5000/uploads/image/:path*',
+        destination: `${BACKEND_URL}/uploads/image/:path*`,
       },
     ];
   },
