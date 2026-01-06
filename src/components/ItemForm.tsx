@@ -21,7 +21,7 @@ const getSchema = (mode: "create" | "update") =>
     category_id: Yup.number().required("Category is required"),
     sub_category_id: Yup.number().required("Sub category is required"),
     brand: Yup.string().required("Brand is required"),
-    stock: Yup.number().min(0).max(100),
+    stock: Yup.number().min(1).max(100),
     price: Yup.number().min(1),
     description: Yup.string().required("Description is required"),
     image:
@@ -111,189 +111,266 @@ export default function ItemForm({
   }
 
   return (
-    <div className="bg-white shadow rounded p-4 mb-6">
-      <h2 className={`text-lg font-semibold mb-3 ${mode === "update" ? "flex justify-between items-center" : ""}`}>
-        {mode === "create" ? "Create Item" : "Update Item"}
-        {mode === "update" && (
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-primary-500 p-1"
-          >
-            <X />
-          </button>
-        )}
-      </h2>
+    <div className="flex justify-center">
+      <div className="w-full max-w-md bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-semibold text-gray-800">
+            {mode === "create" ? "Create Item" : "Update Item"}
+          </h2>
 
-      <Formik
-        initialValues={initialValues || defaultValues}
-        validationSchema={getSchema(mode)}
-        enableReinitialize
-        onSubmit={onSubmit}
-      >
-        {({ errors, setFieldValue, values }) => (
-          <Form className="space-y-3">
-
-            {/* Name */}
-            <Field
-              name="name"
-              placeholder="Item Name"
-              className="w-full border px-3 py-2 rounded"
-            />
-            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
-
-            <Field
-              name="description"
-              placeholder="Item Description"
-              className="w-full border px-3 py-2 rounded"
-            />
-            {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
-
-            {/* Brand */}
-            <Field
-              name="brand"
-              placeholder="Brand"
-              className="w-full border px-3 py-2 rounded"
-            />
-            {errors.brand && <p className="text-red-500 text-sm">{errors.brand}</p>}
-
-            <Field
-              name="price"
-              type="number"
-              min={0}
-              className="w-20 text-center border px-2 py-1 rounded"
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const value = Number(e.target.value)
-                if (value >= 0) {
-                  setFieldValue("price", value)
-                }
-              }}
-            />
-            {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
-
-
-            {/* Category */}
-            <Field
-              as="select"
-              name="category_id"
-              className="w-full border px-3 py-2 rounded"
-              onChange={async (e: React.ChangeEvent<HTMLSelectElement>) => {
-                const categoryId = Number(e.target.value) || null
-                setFieldValue("category_id", categoryId)
-                setFieldValue("sub_category_id", null)
-
-                if (!categoryId) {
-                  setSubCategories([])
-                  return
-                }
-
-                try {
-                  const res = await fetchSubCategories(categoryId)
-                  if (res.subCategories) setSubCategories(res.subCategories)
-                } catch { }
-              }}
+          {mode === "update" && (
+            <button
+              onClick={onClose}
+              className="p-1 rounded-md text-gray-500 hover:bg-gray-100 transition"
             >
-              <option value="">Select Category</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </Field>
+              <X size={18} />
+            </button>
+          )}
+        </div>
 
-            {/* Sub Category */}
-            <Field
-              as="select"
-              name="sub_category_id"
-              disabled={!values.category_id}
-              className="w-full border px-3 py-2 rounded disabled:bg-gray-100"
-            >
-              <option value="">Select Sub Category</option>
-              {subCategories.map((sub) => (
-                <option key={sub.id} value={sub.id}>
-                  {sub.name}
-                </option>
-              ))}
-            </Field>
-
-            {/* Image */}
-            <div>
-              <input
-                type="file"
-                accept="image/png, image/jpeg, image/jpg"
-                onChange={(e) => handleFiles(e.target.files, setFieldValue)}
-              />
-              {errors.image && (
-                <p className="text-red-500 text-sm mt-1">{errors.image as string}</p>
-              )}
-
-              {preview && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="mt-3 w-20 h-20 object-cover rounded border"
-                />
-              )}
-            </div>
-
-            {/* Stock (Admin Only) */}
-            {isAdmin && (
+        <Formik
+          initialValues={initialValues || defaultValues}
+          validationSchema={getSchema(mode)}
+          enableReinitialize
+          onSubmit={onSubmit}
+        >
+          {({ errors, touched, setFieldValue, values }) => (
+            <Form className="space-y-4">
+              {/* Name */}
               <div>
-                <label className="block text-sm font-medium mb-1">Stock</label>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFieldValue("stock", Math.max((values.stock || 0) - 1, 0))
-                    }
-                    disabled={values.stock <= 0}
-                    className="w-9 h-9 border rounded flex items-center justify-center disabled:opacity-40"
-                  >
-                    −
-                  </button>
-
-                  <Field
-                    name="stock"
-                    type="number"
-                    min={0}
-                    max={100}
-                    className="w-20 text-center border px-2 py-1 rounded"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      const value = Number(e.target.value)
-                      if (value >= 0 && value <= 100) {
-                        setFieldValue("stock", value)
-                      }
-                    }}
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFieldValue("stock", Math.min((values.stock || 0) + 1, 100))
-                    }
-                    disabled={values.stock >= 100}
-                    className="w-9 h-9 border rounded flex items-center justify-center disabled:opacity-40"
-                  >
-                    +
-                  </button>
-                </div>
-
-                {errors.stock && (
-                  <p className="text-red-500 text-sm mt-1">{errors.stock}</p>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Item Name
+                </label>
+                <Field
+                  name="name"
+                  className={`w-full rounded-lg border px-3 py-2 text-sm
+                    focus:outline-none focus:ring-1
+                    ${errors.name && touched.name
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-indigo-500"
+                    }`}
+                />
+                {errors.name && touched.name && (
+                  <p className="mt-1 text-xs text-red-500">{errors.name}</p>
                 )}
               </div>
-            )}
 
-            <button
-              type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded"
-            >
-              {mode === "create" ? "Create" : "Update"}
-            </button>
-          </Form>
-        )}
-      </Formik>
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <Field
+                  name="description"
+                  as="textarea"
+                  rows={3}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm
+                    focus:outline-none focus:ring-1
+                    ${errors.description && touched.description
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-indigo-500"
+                    }`}
+                />
+                {errors.description && touched.description && (
+                  <p className="mt-1 text-xs text-red-500">{errors.description}</p>
+                )}
+              </div>
+
+              {/* Brand & Price */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+                  <Field
+                    name="brand"
+                    className={`w-full rounded-lg border px-3 py-2 text-sm
+                    focus:outline-none focus:ring-1
+                    ${errors.brand && touched.brand
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-indigo-500"
+                      }`}
+                  />
+                  {errors.brand && touched.brand && (
+                    <p className="mt-1 text-xs text-red-500">{errors.brand}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                  <Field
+                    name="price"
+                    type="number"
+                    min={0}
+                    className={`w-full rounded-lg border px-3 py-2 text-sm
+                    focus:outline-none focus:ring-1 ${errors.price && touched.price ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-indigo-500"
+                      }`}
+                  />
+                  {errors.price && touched.price && (
+                    <p className="mt-1 text-xs text-red-500">{errors.price}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <Field
+                  as="select"
+                  name="category_id"
+                  className={`w-full rounded-lg border px-3 py-2 text-sm
+                    focus:outline-none focus:ring-1
+                    ${errors.category_id && touched.category_id
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-indigo-500"
+                    }`}
+                  onChange={async (e: React.ChangeEvent<HTMLSelectElement>) => {
+                    const categoryId = Number(e.target.value) || null
+                    setFieldValue("category_id", categoryId)
+                    setFieldValue("sub_category_id", null)
+
+                    if (!categoryId) {
+                      setSubCategories([])
+                      return
+                    }
+
+                    const res = await fetchSubCategories(categoryId)
+                    if (res.subCategories) setSubCategories(res.subCategories)
+                  }}
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </Field>
+                {errors.category_id && touched.category_id && (
+                  <p className="mt-1 text-xs text-red-500">{errors.category_id}</p>
+                )}
+              </div>
+
+              {/* Sub Category */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Sub Category</label>
+                <Field
+                  as="select"
+                  name="sub_category_id"
+                  disabled={!values.category_id}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm disabled:bg-gray-100
+                    focus:outline-none focus:ring-1
+                    ${errors.sub_category_id && touched.sub_category_id
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-indigo-500"
+                    }`}
+                >
+                  <option value="">Select Sub Category</option>
+                  {subCategories.map((sub) => (
+                    <option key={sub.id} value={sub.id}>
+                      {sub.name}
+                    </option>
+                  ))}
+                </Field>
+                {errors.sub_category_id && touched.sub_category_id && (
+                  <p className="mt-1 text-xs text-red-500">{errors.sub_category_id}</p>
+                )}
+              </div>
+
+              {/* Image */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg"
+                  onChange={(e) =>
+                    handleFiles(e.target.files, setFieldValue)
+                  }
+                  className={`w-full rounded-lg border border-dashed px-3 py-2 text-sm disabled:bg-gray-100
+                    focus:outline-none focus:ring-1
+                    ${errors.image && touched.image
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-indigo-500"
+                    }`}
+                />
+                {errors.image && touched.image && (
+                  <p className="mt-1 text-xs text-red-500">{errors.image as string}</p>
+                )}
+
+                {preview && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={preview}
+                    alt="Preview"
+                    className="mt-3 h-24 w-24 object-cover rounded-lg border"
+                  />
+                )}
+              </div>
+
+              {/* Stock */}
+              {isAdmin && (
+                <div>
+                  <label className="form-label">Stock</label>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFieldValue("stock", Math.max(values.stock - 1, 0))
+                      }
+                      className="stock-btn"
+                    >
+                      −
+                    </button>
+
+                    <Field
+                      name="stock"
+                      type="number"
+                      className={`w-20 rounded-lg border px-3 py-2 text-sm disabled:bg-gray-100
+                    focus:outline-none focus:ring-1
+                    ${errors.stock && touched.stock
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-indigo-500"
+                        }`}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFieldValue("stock", Math.min(values.stock + 1, 100))
+                      }
+                      className="stock-btn"
+                    >
+                      +
+                    </button>
+                  </div>
+                  {errors.stock && touched.stock && (
+                    <p className="mt-1 text-xs text-red-500">{errors.stock as string}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex justify-end gap-2 pt-2">
+                {mode === "update" && (
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-4 py-2 text-sm rounded-lg border border-gray-300
+                               text-gray-700 hover:bg-gray-100 transition"
+                  >
+                    Cancel
+                  </button>
+                )}
+
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white
+                             hover:bg-indigo-700 transition"
+                >
+                  {mode === "create" ? "Create Item" : "Update Item"}
+                </button>
+              </div>
+            </Form>
+          )}
+        </Formik>
+      </div>
     </div>
   )
 }

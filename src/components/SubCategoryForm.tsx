@@ -37,26 +37,26 @@ export default function SubCategoryForm({
   useEffect(() => {
     fetchCategories()
       .then((res) => res.categories && setCategories(res.categories))
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   return (
-    <div className="bg-white shadow rounded p-4 mb-6 w-full max-w-md">
-      <h2
-        className={`text-lg font-semibold mb-3 ${
-          mode === "update" ? "flex justify-between items-center" : ""
-        }`}
-      >
-        {mode === "create" ? "Create Sub Category" : "Update Sub Category"}
+    <div className="w-full max-w-md bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-lg font-semibold text-gray-800">
+          {mode === "create" ? "Create Sub Category" : "Update Sub Category"}
+        </h2>
+
         {mode === "update" && (
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-primary-500 p-1"
+            className="p-1 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition"
           >
-            <X />
+            <X size={18} />
           </button>
         )}
-      </h2>
+      </div>
 
       <Formik
         initialValues={initialValues || defaultValues}
@@ -64,39 +64,72 @@ export default function SubCategoryForm({
         enableReinitialize
         onSubmit={onSubmit}
       >
-        {({ errors }) => (
-          <Form className="space-y-3">
-            <Field
-              name="name"
-              placeholder="Sub Category Name"
-              className="w-full border px-3 py-2 rounded"
-            />
-            {errors.name && (
-              <p className="text-red-500 text-sm">{errors.name}</p>
-            )}
+        {({ errors, touched }) => (
+          <Form className="space-y-4">
+            {/* Sub Category Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Sub Category Name
+              </label>
+              <Field
+                name="name"
+                placeholder="Enter sub category name"
+                className={`w-full rounded-lg border px-3 py-2 text-sm
+                  focus:outline-none focus:ring-1
+                  ${errors.name && touched.name ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-indigo-500"}`}
+              />
+              {errors.name && touched.name && (
+                <p className="mt-1 text-xs text-red-500">{errors.name}</p>
+              )}
+            </div>
 
-            <Field
-              as="select"
-              name="category_id"
-              className="w-full border px-3 py-2 rounded"
-            >
-              <option value="">Select Category</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </Field>
-            {errors.category_id && (
-              <p className="text-red-500 text-sm">{errors.category_id}</p>
-            )}
+            {/* Category Select */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Category
+              </label>
+              <Field
+                as="select"
+                name="category_id"
+                className={`w-full rounded-lg border px-3 py-2 text-sm bg-white
+                  focus:outline-none focus:ring-1
+                  ${errors.category_id && touched.category_id ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-indigo-500"}`}
+              >
+                <option value="">Select category</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </Field>
+              {errors.category_id && touched.category_id && (
+                <p className="mt-1 text-xs text-red-500">{errors.category_id}</p>
+              )}
+            </div>
 
-            <button
-              type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded"
-            >
-              {mode === "create" ? "Create" : "Update"}
-            </button>
+            {/* Actions */}
+            <div className="flex justify-end gap-2 pt-2">
+              {mode === "update" && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 text-sm rounded-lg border border-gray-300
+                             text-gray-700 hover:bg-gray-100 transition"
+                >
+                  Cancel
+                </button>
+              )}
+
+              <button
+                type="submit"
+                className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white
+                           hover:bg-indigo-700 transition"
+              >
+                {mode === "create" ? "Create Sub Category" : "Update Sub Category"}
+              </button>
+            </div>
           </Form>
         )}
       </Formik>

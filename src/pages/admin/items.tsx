@@ -26,45 +26,37 @@ export default function AdminItems() {
 
     const loadItems = useCallback(
         async (customFilters: FilterType, page: number, limit: number) => {
-            try {
-
-                const res = await fetchItems({
-                    ...customFilters,
-                    page,
-                    limit,
-                })
-
-                setItems(res.items)
-                setPagination(res.pagination)
-            } catch {
-
-            }
+            const res = await fetchItems({ ...customFilters, page, limit })
+            setItems(res.items)
+            setPagination(res.pagination)
         },
         []
     )
-
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         loadItems(filters, currentPage, pagination.itemsPerPage)
     }, [filters, currentPage, pagination.itemsPerPage, loadItems])
 
-
     return (
-        <div className="max-w-6xl mx-auto p-6 space-y-4">
+        <div className="max-w-7xl mx-auto p-6 space-y-6">
+
             {/* Header */}
-            <div className="flex justify-between items-center">
-                <h1 className="text-xl font-semibold">Items</h1>
+            <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-semibold tracking-tight">
+                    Manage Items
+                </h1>
 
                 <button
-                    onClick={() => setShowCreateForm((prev) => !prev)}
-                    className="px-4 py-2 rounded hover:bg-primary-700"
+                    onClick={() => setShowCreateForm(prev => !prev)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md
+                               hover:bg-blue-700 transition"
                 >
-                    {showCreateForm ? "Close" : "+ Create Item"}
+                    {showCreateForm ? "Close Form" : "+ Add Item"}
                 </button>
             </div>
 
-            {/* Create Item Form */}
+            {/* Create Form */}
             {showCreateForm && (
                 <ItemForm
                     mode="create"
@@ -72,16 +64,9 @@ export default function AdminItems() {
                     onClose={() => setShowCreateForm(false)}
                     onSubmit={async (values) => {
                         const formData = new FormData()
-
-                        formData.append("name", values.name)
-                        formData.append("brand", values.brand)
-                        formData.append("category_id", String(values.category_id))
-                        formData.append("sub_category_id", String(values.sub_category_id))
-                        formData.append("stock", String(values.stock))
-                        formData.append("description", values.description)
-                        formData.append("price", String(values.price))
-
-                        // Append image ONLY if it's a File
+                        Object.entries(values).forEach(([k, v]) => {
+                            if (k !== "image") formData.append(k, String(v))
+                        })
                         if (values.image instanceof File) {
                             formData.append("image", values.image)
                         }
@@ -95,27 +80,22 @@ export default function AdminItems() {
             {/* Filters */}
             <ItemFilters onChange={setFilters} />
 
-            {/* Items Table */}
+            {/* Table */}
             <ItemTable
                 items={items}
                 isAdmin
-                onRestock={() =>
-                    loadItems(filters, currentPage, pagination.itemsPerPage)
-                }
-                onDelete={() =>
-                    loadItems(filters, currentPage, pagination.itemsPerPage)
-                }
+                onDelete={() => loadItems(filters, currentPage, pagination.itemsPerPage)}
+                onRestock={() => loadItems(filters, currentPage, pagination.itemsPerPage)}
             />
 
             {/* Pagination */}
-            {items.length !== 0 && (
-
+            {items.length > 0 && (
                 <Pagination
                     contentType="Item"
                     paginationData={pagination}
                     onPageChange={setCurrentPage}
                     onPageSizeChange={(size) => {
-                        setPagination((prev) => ({ ...prev, itemsPerPage: size }))
+                        setPagination(p => ({ ...p, itemsPerPage: size }))
                         setCurrentPage(1)
                     }}
                 />

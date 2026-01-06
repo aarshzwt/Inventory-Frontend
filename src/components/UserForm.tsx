@@ -38,19 +38,23 @@ export default function UserForm({
     })
 
     return (
-        <div className="flex justify-center items-center mt-8">
-            <div className="bg-white shadow rounded p-4 mb-6 max-w-md">
-                <h2 className={`text-lg font-semibold mb-3 ${mode === "update" ? "flex justify-between items-center" : ""}`}>
-                    {mode === "create" ? "Register User" : "Update User"}
+        <div className="flex justify-center mt-8">
+            <div className="w-full max-w-md bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-lg font-semibold text-gray-800">
+                        {mode === "create" ? "Register User" : "Update User"}
+                    </h2>
+
                     {mode === "update" && (
                         <button
                             onClick={onClose}
-                            className="text-gray-500 hover:text-primary-500 p-1"
+                            className="p-1 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition"
                         >
-                            <X />
+                            <X size={18} />
                         </button>
                     )}
-                </h2>
+                </div>
 
                 <Formik
                     initialValues={initialValues || defaultValues}
@@ -58,61 +62,113 @@ export default function UserForm({
                     enableReinitialize
                     onSubmit={onSubmit}
                 >
-                    {({ errors }) => (
-                        <Form className="space-y-3">
-
+                    {({ errors, touched }) => (
+                        <Form className="space-y-4">
                             {/* Username */}
-                            <Field
-                                name="username"
-                                placeholder="Username"
-                                className="w-full border px-3 py-2 rounded"
-                            />
-                            {errors.username && (
-                                <p className="text-red-500 text-sm">{errors.username}</p>
-                            )}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Username
+                                </label>
+                                <Field
+                                    name="username"
+                                    placeholder="Enter username"
+                                    className={`w-full rounded-lg border px-3 py-2 text-sm
+                    focus:outline-none focus:ring-1
+                    ${errors.username && touched.username
+                                            ? "border-red-500 focus:ring-red-500"
+                                            : "border-gray-300 focus:ring-indigo-500"
+                                        }`}
+                                />
+                                {errors.username && touched.username && (
+                                    <p className="mt-1 text-xs text-red-500">{errors.username}</p>
+                                )}
+                            </div>
 
                             {/* Email */}
-                            <Field
-                                name="email"
-                                type="email"
-                                placeholder="Email"
-                                className="w-full border px-3 py-2 rounded"
-                            />
-                            {errors.email && (
-                                <p className="text-red-500 text-sm">{errors.email}</p>
-                            )}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Email
+                                </label>
+                                <Field
+                                    name="email"
+                                    type="email"
+                                    placeholder="Enter email address"
+                                    className={`w-full rounded-lg border px-3 py-2 text-sm
+                    focus:outline-none focus:ring-1
+                    ${errors.email && touched.email
+                                            ? "border-red-500 focus:ring-red-500"
+                                            : "border-gray-300 focus:ring-indigo-500"
+                                        }`}
+                                />
+                                {errors.email && touched.email && (
+                                    <p className="mt-1 text-xs text-red-500">{errors.email}</p>
+                                )}
+                            </div>
 
                             {/* Password */}
-                            <Field
-                                name="password"
-                                type="password"
-                                placeholder={mode === "create" ? "Password" : "New Password (optional)"}
-                                className="w-full border px-3 py-2 rounded"
-                            />
-                            {errors.password && (
-                                <p className="text-red-500 text-sm">{errors.password}</p>
-                            )}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    {mode === "create" ? "Password" : "New Password"}
+                                </label>
+                                <Field
+                                    name="password"
+                                    type="password"
+                                    placeholder={
+                                        mode === "create"
+                                            ? "Enter password"
+                                            : "Leave blank to keep existing"
+                                    }
+                                    className={`w-full rounded-lg border px-3 py-2 text-sm
+                                            focus:outline-none focus:ring-1
+                                            ${errors.password && touched.password
+                                            ? "border-red-500 focus:ring-red-500"
+                                            : "border-gray-300 focus:ring-indigo-500"
+                                        }`}
+                                />
+                                {errors.password && touched.password && (
+                                    <p className="mt-1 text-xs text-red-500">{errors.password}</p>
+                                )}
+                            </div>
 
                             {/* Role (ADMIN ONLY) */}
                             {isAdmin && mode === "create" && (
-                                <>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Role
+                                    </label>
                                     <Field
                                         as="select"
                                         name="role"
-                                        className="w-full border px-3 py-2 rounded"
+                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white
+                               focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     >
                                         <option value="user">User</option>
                                         <option value="admin">Admin</option>
                                     </Field>
-                                </>
+                                </div>
                             )}
 
-                            <button
-                                type="submit"
-                                className="bg-blue-600 text-white px-4 py-2 rounded w-full"
-                            >
-                                {mode === "create" ? "Register" : "Update"}
-                            </button>
+                            {/* Actions */}
+                            <div className="flex justify-end gap-2 pt-2">
+                                {mode === "update" && (
+                                    <button
+                                        type="button"
+                                        onClick={onClose}
+                                        className="px-4 py-2 text-sm rounded-lg border border-gray-300
+                               text-gray-700 hover:bg-gray-100 transition"
+                                    >
+                                        Cancel
+                                    </button>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white
+                             hover:bg-indigo-700 transition"
+                                >
+                                    {mode === "create" ? "Register User" : "Update User"}
+                                </button>
+                            </div>
                         </Form>
                     )}
                 </Formik>

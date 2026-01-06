@@ -1,8 +1,26 @@
-'use client'
+import { useRouter } from "next/router"
+
+type NavButtonProps = {
+  label: string
+  path: string
+}
+
+function NavButton({ label, path }: NavButtonProps) {
+  const router = useRouter()
+
+  return (
+    <button
+      onClick={() => router.push(path)}
+      className="px-3 py-1.5 rounded-md text-sm
+                 hover:bg-gray-100 transition"
+    >
+      {label}
+    </button>
+  )
+}
 
 import { useAppDispatch, useAppSelector } from "@/redux/hooks"
 import { logout } from "@/redux/slices/authSlice"
-import { useRouter } from "next/router"
 
 export default function Header() {
   const { isLoggedIn, isHydrated, user } = useAppSelector(
@@ -20,60 +38,74 @@ export default function Header() {
   }
 
   return (
-    <header className="flex items-center gap-4 p-4 border-b">
+    <header className="sticky top-0 z-50 bg-white border-b">
+      <div className="max-w-7xl mx-auto flex items-center justify-between p-4">
 
-      {/* NOT LOGGED IN */}
-      {!isLoggedIn && (
-        <>
-          <button onClick={() => router.push("/login")}>Login</button>
-          <button onClick={() => router.push("/register")}>Register</button>
-        </>
-      )}
+        {/* LOGO / BRAND */}
+        <div
+          className="font-semibold text-lg cursor-pointer"
+          onClick={() => router.push("/")}
+        >
+          InventoryApp
+        </div>
 
-      {/* LOGGED IN */}
-      {isLoggedIn && (
-        <>
-          {/* USER */}
-          {user?.role === "user" && (
+        {/* NAV */}
+        <div className="flex items-center gap-2">
+
+          {/* NOT LOGGED IN */}
+          {!isLoggedIn && (
             <>
-              <button onClick={() => router.push("/user/items")}>
-                Items
-              </button>
-              <button onClick={() => router.push("/cart")}>
-                My Cart
-              </button>
-              <button onClick={() => router.push("/orders")}>
-                My Orders
-              </button>
+              <NavButton label="Login" path="/login" />
+              <NavButton label="Register" path="/register" />
             </>
           )}
 
-          {/* ADMIN */}
-          {user?.role === "admin" && (
+          {/* LOGGED IN */}
+          {isLoggedIn && (
             <>
-              <button onClick={() => router.push("/admin/users")}>
-                Admin Users
-              </button>
-              <button onClick={() => router.push("/admin/items")}>
-                Admin Items
-              </button>
-              <button onClick={() => router.push("/admin/categories")}>
-                Admin Categories
-              </button>
-              <button onClick={() => router.push("/admin/subcategories")}>
-                Admin SubCategories
-              </button>
+              {/* USER NAV */}
+              {user?.role === "user" && (
+                <>
+                  <NavButton label="Items" path="/user/items" />
+                  <NavButton label="My Cart" path="/cart" />
+                  <NavButton label="My Orders" path="/orders" />
+                </>
+              )}
+
+              {/* ADMIN NAV */}
+              {user?.role === "admin" && (
+                <>
+                  <span className="text-xs text-gray-400 mx-2">
+                    Admin
+                  </span>
+                  <NavButton label="Users" path="/admin/users" />
+                  <NavButton label="Items" path="/admin/items" />
+                  <NavButton label="Categories" path="/admin/categories" />
+                  <NavButton label="SubCategories" path="/admin/subcategories" />
+                </>
+              )}
             </>
           )}
+        </div>
 
-          <button
-            onClick={handleLogout}
-            className="text-red-600"
-          >
-            Logout
-          </button>
-        </>
-      )}
+        {/* RIGHT ACTIONS */}
+        {isLoggedIn && (
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-600">
+              {user?.email}
+            </span>
+
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1.5 rounded-md text-sm
+                         text-red-600 border border-red-200
+                         hover:bg-red-50 transition"
+            >
+              Logout
+            </button>
+          </div>
+        )}
+      </div>
     </header>
   )
 }
