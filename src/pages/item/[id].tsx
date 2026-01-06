@@ -123,8 +123,8 @@ export default function ItemDetailPage() {
                                 </span>
                                 <span
                                     className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${item.stock === 0
-                                            ? "bg-red-100 text-red-700"
-                                            : "bg-green-100 text-green-700"
+                                        ? "bg-red-100 text-red-700"
+                                        : "bg-green-100 text-green-700"
                                         }`}
                                 >
                                     {item.stock === 0 ? "Out of stock" : item.stock}
@@ -132,85 +132,90 @@ export default function ItemDetailPage() {
                             </div>
                         )}
 
-                        {/* BUY SECTION */}
-                        <div className="border-t pt-5 space-y-4">
+                        {user?.role === "admin" && (
+                            <>
+                                {/* BUY SECTION */}
+                                <div className="border-t pt-5 space-y-4">
 
-                            <label className="block text-sm font-medium text-gray-700">
-                                Quantity
-                            </label>
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Quantity
+                                    </label>
 
-                            <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3">
 
-                                {/* Decrease */}
-                                <button
-                                    onClick={decrease}
-                                    disabled={qty <= 0}
-                                    className="w-9 h-9 border rounded-lg flex items-center justify-center
+                                        {/* Decrease */}
+                                        <button
+                                            onClick={decrease}
+                                            disabled={qty <= 0 || user?.role === "admin"}
+                                            className="w-9 h-9 border rounded-lg flex items-center justify-center
                                 disabled:opacity-40 hover:bg-gray-100 transition"
-                                >
-                                    −
-                                </button>
+                                        >
+                                            −
+                                        </button>
 
-                                {/* Input */}
-                                <input
-                                    type="number"
-                                    min={0}
-                                    max={item.stock}
-                                    value={qty}
-                                    onChange={(e) => {
-                                        const value = Number(e.target.value)
-                                        if (value >= 0 && value <= item.stock) {
-                                            setQty(value)
-                                        }
-                                    }}
-                                    className="w-20 text-center border rounded-lg py-1.5
+                                        {/* Input */}
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            max={item.stock}
+                                            value={qty}
+                                            onChange={(e) => {
+                                                const value = Number(e.target.value)
+                                                if (value >= 0 && value <= item.stock) {
+                                                    setQty(value)
+                                                }
+                                            }}
+                                            className="w-20 text-center border rounded-lg py-1.5
                                 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
+                                        />
 
-                                {/* Increase */}
-                                <button
-                                    onClick={increase}
-                                    disabled={qty >= item.stock}
-                                    className="w-9 h-9 border rounded-lg flex items-center justify-center
+                                        {/* Increase */}
+                                        <button
+                                            onClick={increase}
+                                            disabled={qty >= item.stock || user?.role === "admin"}
+                                            className="w-9 h-9 border rounded-lg flex items-center justify-center
                                 disabled:opacity-40 hover:bg-gray-100 transition"
-                                >
-                                    +
-                                </button>
+                                        >
+                                            +
+                                        </button>
 
-                                {/* Add to Cart */}
-                                <button
-                                    onClick={handleAddToCart}
-                                    disabled={
-                                        buying ||
-                                        qty === 0 ||
-                                        item.stock === 0 ||
-                                        qty > item.stock
-                                    }
-                                    className="ml-3 bg-blue-600 text-white px-6 py-2 rounded-lg
+                                        {/* Add to Cart */}
+                                        <button
+                                            onClick={handleAddToCart}
+                                            disabled={
+                                                buying ||
+                                                qty === 0 ||
+                                                item.stock === 0 ||
+                                                qty > item.stock ||
+                                                user?.role === "admin"
+                                            }
+                                            className="ml-3 bg-blue-600 text-white px-6 py-2 rounded-lg
                                 font-medium hover:bg-blue-700 transition
                                 disabled:opacity-40 disabled:hover:bg-blue-600"
-                                >
-                                    {buying ? "Adding..." : "Add to Cart"}
-                                </button>
-                            </div>
+                                        >
+                                            {buying ? "Adding..." : "Add to Cart"}
+                                        </button>
+                                    </div>
 
-                            {/* Subtotal */}
-                            {qty > 0 && (
-                                <p className="text-sm text-gray-600">
-                                    Subtotal:{" "}
-                                    <strong className="text-gray-900">
-                                        ${Number(item.price) * qty}
-                                    </strong>
-                                </p>
-                            )}
+                                    {/* Subtotal */}
+                                    {qty > 0 && (
+                                        <p className="text-sm text-gray-600">
+                                            Subtotal:{" "}
+                                            <strong className="text-gray-900">
+                                                ${Number(item.price) * qty}
+                                            </strong>
+                                        </p>
+                                    )}
 
-                            {/* Sold Out */}
-                            {item.stock === 0 && (
-                                <p className="text-sm text-red-500 font-medium">
-                                    Sold Out
-                                </p>
-                            )}
-                        </div>
+                                    {/* Sold Out */}
+                                    {item.stock === 0 && (
+                                        <p className="text-sm text-red-500 font-medium">
+                                            Sold Out
+                                        </p>
+                                    )}
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

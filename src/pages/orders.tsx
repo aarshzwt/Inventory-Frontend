@@ -9,7 +9,6 @@ export default function OrdersPage() {
         const load = async () => {
             try {
                 const res = await getOrderHistory()
-                console.log(res)
                 setOrders(res.orders)
             } finally {
                 setLoading(false)

@@ -5,6 +5,8 @@ WORKDIR /src
 COPY package*.json ./
 RUN npm install
 
+COPY .env.docker .env.local
+
 COPY . .
 RUN npm run build
 

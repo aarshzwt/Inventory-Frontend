@@ -13,7 +13,7 @@ export default function RegisterPage() {
             role="user"
             onSubmit={async (values) => {
                 await registerUser(values)
-                router.push("/login")
+                router.push("/")
             }}
         />
 
