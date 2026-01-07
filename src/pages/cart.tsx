@@ -6,12 +6,17 @@ import {
     removeCartItem,
     checkoutCart,
     CartItemType,
+    getGuestCart,
+    saveGuestCart,
 } from "@/services/cart"
-import { showSuccessToast } from "@/components/toast"
+import { showErrorToast, showSuccessToast } from "@/components/toast"
+import { useAppSelector } from "@/redux/hooks"
 
 export default function CartPage() {
     const router = useRouter()
 
+    const { user, isLoggedIn } = useAppSelector((state) => state.auth)
+    const isGuestUser = !user && !isLoggedIn
     const [items, setItems] = useState<CartItemType[]>([])
     const [loading, setLoading] = useState(true)
     const [checkingOut, setCheckingOut] = useState(false)
@@ -21,8 +26,13 @@ export default function CartPage() {
     const loadCart = async () => {
         try {
             setLoading(true)
-            const res = await getCart()
-            setItems(res.cart?.items || [])
+            if (isGuestUser) {
+                const cart = getGuestCart();
+                setItems(cart)
+            } else {
+                const res = await getCart()
+                setItems(res.cart?.items || [])
+            }
         } catch {
 
         } finally {
@@ -32,16 +42,38 @@ export default function CartPage() {
 
     useEffect(() => {
         loadCart()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const changeQty = async (cartItemId: number, qty: number, max: number) => {
         if (qty < 1 || qty > max) return
+        if (isGuestUser) {
+            const cart = getGuestCart();
+            const updatedCart = cart.map((item: { id: number }) =>
+                item.id === cartItemId
+                    ? { ...item, quantity: qty }
+                    : item
+            )
+            saveGuestCart(updatedCart)
+            setItems(updatedCart)
+            return
+        }
         await updateCartItem(cartItemId, qty)
         loadCart()
     }
 
 
     const removeItem = async (cartItemId: number) => {
+        if (isGuestUser) {
+            const cart = getGuestCart();
+            const updatedCart = cart.filter(
+                (item: { id: number }) => item.id !== cartItemId
+            )
+            saveGuestCart(updatedCart)
+            setItems(updatedCart)
+            showSuccessToast("Item removed from cart")
+            return
+        }
         try {
             await removeCartItem(cartItemId)
             loadCart()
@@ -56,6 +88,11 @@ export default function CartPage() {
     ) || 0
 
     const handleCheckout = async () => {
+        if (!isLoggedIn && user === null) {
+            showErrorToast("Login to proceed with Checkout process")
+            router.push("/login?redirect=/cart")
+            return
+        }
         try {
             setCheckingOut(true)
             await checkoutCart()

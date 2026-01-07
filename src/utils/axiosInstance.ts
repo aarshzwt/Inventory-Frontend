@@ -2,10 +2,11 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import Router from 'next/router'
 import { showErrorToast } from '@/components/toast'
+import { store } from "../redux/store"
+import { logout } from "../redux/slices/authSlice"
 
 let isRefreshing = false
 let refreshPromise: Promise<string> | null = null
-
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
@@ -62,9 +63,10 @@ axiosInstance.interceptors.response.use(
           .catch((err) => {
             console.log("errorrrr:", err)
             // Logout if Refresh failed 
-            localStorage.removeItem('token')
-            localStorage.removeItem('user')
-            document.cookie = 'role=; path=/; max-age=0;'
+            store.dispatch(logout())
+            // localStorage.removeItem('token')
+            // localStorage.removeItem('user')
+            // document.cookie = 'role=; path=/; max-age=0;'
             showErrorToast('Session expired. Please login again.')
             Router.push('/login')
             return Promise.reject(err)
@@ -85,7 +87,7 @@ axiosInstance.interceptors.response.use(
       showAllErrors(error)
       Router.push('/login')
     }
-     if (status === 403) {
+    if (status === 403) {
       Router.push('/login')
     }
     if (status === 400) {

@@ -15,6 +15,8 @@ export default function AdminItems() {
         sub_category_id: "",
         minStock: "",
         maxStock: "",
+        sortBy: "createdAt",
+        sortOrder: "desc",
     })
 
     const [pagination, setPagination] = useState({
@@ -26,9 +28,13 @@ export default function AdminItems() {
 
     const loadItems = useCallback(
         async (customFilters: FilterType, page: number, limit: number) => {
-            const res = await fetchItems({ ...customFilters, page, limit })
-            setItems(res.items)
-            setPagination(res.pagination)
+            try {
+                const res = await fetchItems({ ...customFilters, page, limit })
+                setItems(res.items)
+                setPagination(res.pagination)
+            } catch {
+
+            }
         },
         []
     )
@@ -37,6 +43,19 @@ export default function AdminItems() {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         loadItems(filters, currentPage, pagination.itemsPerPage)
     }, [filters, currentPage, pagination.itemsPerPage, loadItems])
+
+    const handleSort = (column: string) => {
+        setFilters(prev => ({
+            ...prev,
+            sortBy: column,
+            sortOrder:
+                prev.sortBy === column && prev.sortOrder === "asc"
+                    ? "desc"
+                    : "asc",
+        }))
+        setCurrentPage(1)
+    }
+
 
     return (
         <div className="max-w-7xl mx-auto p-6 space-y-6">
@@ -65,6 +84,7 @@ export default function AdminItems() {
                     onSubmit={async (values) => {
                         const formData = new FormData()
                         Object.entries(values).forEach(([k, v]) => {
+                            console.log(k, v)
                             if (k !== "image") formData.append(k, String(v))
                         })
                         if (values.image instanceof File) {
@@ -84,6 +104,9 @@ export default function AdminItems() {
             <ItemTable
                 items={items}
                 isAdmin
+                sortBy={filters.sortBy}
+                sortOrder={filters.sortOrder}
+                onSort={handleSort}
                 onDelete={() => loadItems(filters, currentPage, pagination.itemsPerPage)}
                 onRestock={() => loadItems(filters, currentPage, pagination.itemsPerPage)}
             />

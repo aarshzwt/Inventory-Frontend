@@ -14,7 +14,9 @@ export default function UserItems() {
         category_id: "",
         sub_category_id: "",
         minStock: "",
-        maxStock: ""
+        maxStock: "",
+        sortBy: "createdAt",
+        sortOrder: "desc",
     })
 
     const [pagination, setPagination] = useState({
@@ -57,6 +59,17 @@ export default function UserItems() {
         } catch { }
     }
 
+ const handleSort = (column: string) => {
+        setFilters(prev => ({
+            ...prev,
+            sortBy: column,
+            sortOrder:
+                prev.sortBy === column && prev.sortOrder === "asc"
+                    ? "desc"
+                    : "asc",
+        }))
+        setCurrentPage(1)
+    }
 
     return (
         <div className="max-w-6xl mx-auto p-6">
@@ -64,7 +77,9 @@ export default function UserItems() {
 
             <ItemFilters onChange={setFilters} />
 
-            <ItemTable items={items} isAdmin={false} onBuy={onBuy} />
+            <ItemTable items={items} isAdmin={false} onBuy={onBuy} sortBy={filters.sortBy}
+                sortOrder={filters.sortOrder}
+                onSort={handleSort} />
             {items.length !== 0 && (
                 <Pagination
                     contentType="Item"

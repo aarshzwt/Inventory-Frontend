@@ -1,12 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 
 import { loginApi } from "@/services/auth";
 import { useAppDispatch } from "@/redux/hooks";
 import { login } from "@/redux/slices/authSlice";
+import { clearGuestCart, getGuestCart } from "@/services/cart";
+import { POST } from "@/utils/axiosInstance";
+import { useRouter } from "next/router";
 
 const schema = Yup.object().shape({
     email: Yup.string().email("Invalid email").required("Email is required"),
@@ -16,6 +18,7 @@ const schema = Yup.object().shape({
 export default function LoginPage() {
     const router = useRouter();
     const dispatch = useAppDispatch();
+    const { redirect } = router.query
 
     return (
         <div className="flex min-h-screen items-center justify-center">
@@ -40,7 +43,16 @@ export default function LoginPage() {
                             })
                         );
 
-                        router.push("/");
+                        const guestCart = getGuestCart()
+
+                        if (guestCart.length > 0) {
+                            await POST("/cart/merge", { items: guestCart })
+                            clearGuestCart()
+                        }
+
+                        router.push(typeof redirect === "string"
+                            ? decodeURIComponent(redirect)
+                            : "/");
                     } catch {
                     } finally {
                         setSubmitting(false);

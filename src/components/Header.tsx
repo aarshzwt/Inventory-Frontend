@@ -55,6 +55,7 @@ export default function Header() {
           {/* NOT LOGGED IN */}
           {!isLoggedIn && (
             <>
+              <NavButton label="My Cart" path="/cart" />
               <NavButton label="Login" path="/login" />
               <NavButton label="Register" path="/register" />
             </>

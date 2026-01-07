@@ -15,7 +15,9 @@ export default function ItemFilters({ onChange }: { onChange: (filters: FilterTy
         category_id: "",
         sub_category_id: "",
         minStock: "",
-        maxStock: ""
+        maxStock: "",
+        sortBy: "createdAt",
+        sortOrder: "desc",
     });
 
     useEffect(() => {

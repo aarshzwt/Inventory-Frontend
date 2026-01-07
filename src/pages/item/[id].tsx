@@ -2,14 +2,14 @@ import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 import { fetchItemById, ItemType } from "@/services/item"
 import { useAppSelector } from "@/redux/hooks"
-import { showSuccessToast } from "@/components/toast"
-import { addToCart } from "@/services/cart"
+import { showErrorToast, showSuccessToast } from "@/components/toast"
+import { addToCart, CartItemType, getGuestCart, saveGuestCart } from "@/services/cart"
 
 export default function ItemDetailPage() {
     const router = useRouter()
     const { id } = router.query
 
-    const { user } = useAppSelector((state) => state.auth)
+    const { user, isLoggedIn } = useAppSelector((state) => state.auth)
 
     const [item, setItem] = useState<ItemType | null>(null)
     const [loading, setLoading] = useState(true)
@@ -44,15 +44,55 @@ export default function ItemDetailPage() {
     }
 
     const handleAddToCart = async () => {
-        if (!item || qty <= 0 || qty > item.stock) return
+        if (!item || qty <= 0) return
 
         try {
             setBuying(true)
-            await addToCart(item.id, qty)
+
+            const res = await addToCart(item.id, qty)
+
+            // GUEST USER
+            if (!isLoggedIn || !user) {
+                const localCart: CartItemType[] = getGuestCart();
+
+                const existing = localCart.find(
+                    (i) => i.item_id === item.id
+                )
+
+                const newQty =
+                    (existing?.quantity || 0) + qty
+
+                // REAL STOCK CHECK HERE
+                if (newQty > item.stock) {
+                    showErrorToast(
+                        `Avilable Stock is already in your cart`
+                    )
+                    return
+                }
+
+                let updatedCart: CartItemType[]
+
+                if (existing) {
+                    updatedCart = localCart.map((i) =>
+                        i.item_id === item.id
+                            ? { ...i, quantity: newQty }
+                            : i
+                    )
+                } else {
+                    updatedCart = [...localCart, res.item]
+                }
+
+                saveGuestCart(updatedCart)
+                setQty(0)
+                showSuccessToast("Item added to cart")
+                return
+            }
+
+            // LOGGED-IN USER
             setQty(0)
             showSuccessToast("Item added to cart")
-        } catch {
 
+        } catch {
         } finally {
             setBuying(false)
         }
@@ -132,90 +172,88 @@ export default function ItemDetailPage() {
                             </div>
                         )}
 
-                        {user?.role === "admin" && (
-                            <>
-                                {/* BUY SECTION */}
-                                <div className="border-t pt-5 space-y-4">
 
-                                    <label className="block text-sm font-medium text-gray-700">
-                                        Quantity
-                                    </label>
+                        {/* BUY SECTION */}
+                        <div className="border-t pt-5 space-y-4">
 
-                                    <div className="flex items-center gap-3">
+                            <label className="block text-sm font-medium text-gray-700">
+                                Quantity
+                            </label>
 
-                                        {/* Decrease */}
-                                        <button
-                                            onClick={decrease}
-                                            disabled={qty <= 0 || user?.role === "admin"}
-                                            className="w-9 h-9 border rounded-lg flex items-center justify-center
+                            <div className="flex items-center gap-3">
+
+                                {/* Decrease */}
+                                <button
+                                    onClick={decrease}
+                                    disabled={qty <= 0 || user?.role === "admin"}
+                                    className="w-9 h-9 border rounded-lg flex items-center justify-center
                                 disabled:opacity-40 hover:bg-gray-100 transition"
-                                        >
-                                            −
-                                        </button>
+                                >
+                                    −
+                                </button>
 
-                                        {/* Input */}
-                                        <input
-                                            type="number"
-                                            min={0}
-                                            max={item.stock}
-                                            value={qty}
-                                            onChange={(e) => {
-                                                const value = Number(e.target.value)
-                                                if (value >= 0 && value <= item.stock) {
-                                                    setQty(value)
-                                                }
-                                            }}
-                                            className="w-20 text-center border rounded-lg py-1.5
+                                {/* Input */}
+                                <input
+                                    type="number"
+                                    min={0}
+                                    max={item.stock}
+                                    value={qty}
+                                    onChange={(e) => {
+                                        const value = Number(e.target.value)
+                                        if (value >= 0 && value <= item.stock) {
+                                            setQty(value)
+                                        }
+                                    }}
+                                    className="w-20 text-center border rounded-lg py-1.5
                                 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        />
+                                />
 
-                                        {/* Increase */}
-                                        <button
-                                            onClick={increase}
-                                            disabled={qty >= item.stock || user?.role === "admin"}
-                                            className="w-9 h-9 border rounded-lg flex items-center justify-center
+                                {/* Increase */}
+                                <button
+                                    onClick={increase}
+                                    disabled={qty >= item.stock || user?.role === "admin"}
+                                    className="w-9 h-9 border rounded-lg flex items-center justify-center
                                 disabled:opacity-40 hover:bg-gray-100 transition"
-                                        >
-                                            +
-                                        </button>
+                                >
+                                    +
+                                </button>
 
-                                        {/* Add to Cart */}
-                                        <button
-                                            onClick={handleAddToCart}
-                                            disabled={
-                                                buying ||
-                                                qty === 0 ||
-                                                item.stock === 0 ||
-                                                qty > item.stock ||
-                                                user?.role === "admin"
-                                            }
-                                            className="ml-3 bg-blue-600 text-white px-6 py-2 rounded-lg
+                                {/* Add to Cart */}
+                                <button
+                                    onClick={handleAddToCart}
+                                    disabled={
+                                        buying ||
+                                        qty === 0 ||
+                                        item.stock === 0 ||
+                                        qty > item.stock ||
+                                        user?.role === "admin"
+                                    }
+                                    className="ml-3 bg-blue-600 text-white px-6 py-2 rounded-lg
                                 font-medium hover:bg-blue-700 transition
                                 disabled:opacity-40 disabled:hover:bg-blue-600"
-                                        >
-                                            {buying ? "Adding..." : "Add to Cart"}
-                                        </button>
-                                    </div>
+                                >
+                                    {buying ? "Adding..." : "Add to Cart"}
+                                </button>
+                            </div>
 
-                                    {/* Subtotal */}
-                                    {qty > 0 && (
-                                        <p className="text-sm text-gray-600">
-                                            Subtotal:{" "}
-                                            <strong className="text-gray-900">
-                                                ${Number(item.price) * qty}
-                                            </strong>
-                                        </p>
-                                    )}
+                            {/* Subtotal */}
+                            {qty > 0 && (
+                                <p className="text-sm text-gray-600">
+                                    Subtotal:{" "}
+                                    <strong className="text-gray-900">
+                                        ${Number(item.price) * qty}
+                                    </strong>
+                                </p>
+                            )}
 
-                                    {/* Sold Out */}
-                                    {item.stock === 0 && (
-                                        <p className="text-sm text-red-500 font-medium">
-                                            Sold Out
-                                        </p>
-                                    )}
-                                </div>
-                            </>
-                        )}
+                            {/* Sold Out */}
+                            {item.stock === 0 && (
+                                <p className="text-sm text-red-500 font-medium">
+                                    Sold Out
+                                </p>
+                            )}
+                        </div>
+
                     </div>
                 </div>
             </div>

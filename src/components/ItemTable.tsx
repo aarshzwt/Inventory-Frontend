@@ -4,10 +4,14 @@ import { deleteItem, ItemType, updateItem } from '../services/item'
 import { useState } from 'react'
 import ItemForm from './ItemForm'
 import { useRouter } from 'next/router'
+import SortHeader from './SortHeader'
 
 type ItemTableProps = {
   items: ItemType[]
   isAdmin: boolean
+  sortBy?: string
+  sortOrder?: "asc" | "desc"
+  onSort?: (column: string) => void
   onDelete?: (id: number) => Promise<void>
   onRestock?: (id: number) => Promise<void>
   onBuy?: (itemId: number, quantity: number) => Promise<void>
@@ -15,6 +19,9 @@ type ItemTableProps = {
 export default function ItemTable({
   items,
   isAdmin,
+  sortBy,
+  sortOrder,
+  onSort,
   onDelete,
   onRestock,
 }: ItemTableProps) {
@@ -30,7 +37,7 @@ export default function ItemTable({
     try {
       await deleteItem(id)
       if (onDelete) await onDelete(id)
-    } catch {}
+    } catch { }
   }
 
   const stockBadge = (stock: number) => {
@@ -47,15 +54,17 @@ export default function ItemTable({
         {/* HEADER */}
         <thead className="sticky top-0 bg-gray-50 border-b">
           <tr className="text-left text-gray-600">
-            <th className="px-4 py-3 font-semibold">Item</th>
-            <th className="px-4 py-3 font-semibold">Brand</th>
-            <th className="px-4 py-3 font-semibold">Category</th>
-            <th className="px-4 py-3 font-semibold">Sub Category</th>
-            <th className="px-4 py-3 font-semibold">Price</th>
+            <SortHeader label="Item" column="name" activeSortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />
+            <SortHeader label="Brand" column="brand" activeSortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />
+            <th className="px-4 py-3 font-semibold text-left">
+              Category
+            </th>
+            <th className="px-4 py-3 font-semibold text-left">
+              Sub Category
+            </th>
+            <SortHeader label="Price" column="price" activeSortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />
             {isAdmin && (
-              <th className="px-4 py-3 font-semibold text-center">
-                Stock
-              </th>
+              <SortHeader label="Stock" column="stock" activeSortBy={sortBy} sortOrder={sortOrder} onSort={onSort} />
             )}
             <th className="px-4 py-3 font-semibold text-center">
               Actions
@@ -87,7 +96,7 @@ export default function ItemTable({
               </td>
 
               <td className="px-4 py-3 font-medium">
-                ₹{Number(item.price).toFixed(2)}
+                ${Number(item.price).toFixed(2)}
               </td>
 
               {isAdmin && (

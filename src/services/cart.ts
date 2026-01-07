@@ -1,6 +1,5 @@
 import { DELETE, GET, PATCH, POST } from "@/utils/axiosInstance"
 
-
 export type CartItemType = {
     id: number
     item_id: number
@@ -25,8 +24,13 @@ export type CartResponseType = {
     cart: Cart
 }
 
+export type AddToCartRespose = {
+    message: string,
+    item: CartItemType
+}
+
 export const addToCart = (itemId: number, quantity: number) =>
-    POST("/cart", {
+    POST<AddToCartRespose>("/cart", {
         item_id: itemId,
         quantity,
     })
@@ -46,3 +50,14 @@ export const removeCartItem = (cartItemId: number) =>
 export const checkoutCart = () =>
     POST("/cart/checkout")
 
+export const getGuestCart = () => {
+    return JSON.parse(localStorage.getItem("guest_cart") || "[]")
+}
+
+export const saveGuestCart = (cart: unknown[]) => {
+    localStorage.setItem("guest_cart", JSON.stringify(cart))
+}
+
+export const clearGuestCart = () => {
+    localStorage.removeItem("guest_cart")
+}

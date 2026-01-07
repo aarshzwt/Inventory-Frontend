@@ -20,7 +20,9 @@ export interface FilterType {
     category_id: string,
     sub_category_id: string,
     minStock: string,
-    maxStock: string
+    maxStock: string,
+    sortBy?: string
+    sortOrder?: "asc" | "desc"
 }
 
 export interface ItemParamsType extends Partial<FilterType> {
